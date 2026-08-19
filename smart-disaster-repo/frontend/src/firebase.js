@@ -3,15 +3,19 @@ import { getAnalytics } from "firebase/analytics";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBUsLcpEdY2PNNB5zd5UYW7nWKSIJ3WB_E",
-  authDomain: "idealab-96651.firebaseapp.com",
-  projectId: "idealab-96651",
-  storageBucket: "idealab-96651.firebasestorage.app",
-  messagingSenderId: "950123119199",
-  appId: "1:950123119199:web:4e05242e49c58beeda51ea",
-  measurementId: "G-GJZ0D78D9Q"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+
+if (import.meta.env.VITE_FIREBASE_MEASUREMENT_ID) {
+  getAnalytics(app);
+}
+
 export const auth = getAuth(app);

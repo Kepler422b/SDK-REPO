@@ -77,7 +77,11 @@ The API runs at `http://localhost:5000`.
 cd smart-disaster-repo/frontend
 npm install
 ```
-Update `src/firebase.js` with your Firebase project credentials, then start the dev server:
+Copy `.env.example` to `.env` and add your Firebase project credentials, then start the dev server:
+
+```bash
+cp .env.example .env
+```
 ```bash
 npm run dev
 ```
