@@ -1,19 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { Search, Filter, MapPin, Calendar, FileText, Building2, Users } from 'lucide-react';
+import { Search, Filter, MapPin, Calendar, FileText, Building2, Users, Loader2, AlertCircle, SearchX } from 'lucide-react';
 
 const SearchReports = () => {
     const [query, setQuery] = useState('');
     const [reports, setReports] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState('');
     
     useEffect(() => {
         const fetchReports = async () => {
+            setIsLoading(true);
+            setError('');
+
             try {
-                const res = await axios.get(query ? `/api/reports?q=${query}` : '/api/reports');
+                const res = await axios.get('/api/reports', {
+                    params: query ? { q: query } : undefined,
+                });
                 setReports(res.data);
             } catch (err) {
                 console.error("Error fetching reports", err);
+                setError('We could not load reports right now. Please try again.');
+            } finally {
+                setIsLoading(false);
             }
         };
         fetchReports();
@@ -40,7 +50,36 @@ const SearchReports = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto space-y-4 pr-2">
-                {reports.map(report => (
+                {isLoading && (
+                    <div className="flex min-h-56 flex-col items-center justify-center gap-3 rounded-2xl border border-slate-100 bg-white p-8 text-slate-500">
+                        <Loader2 className="animate-spin text-brand-500" size={28} />
+                        <p className="text-sm font-medium">Loading reports...</p>
+                    </div>
+                )}
+
+                {!isLoading && error && (
+                    <div className="flex min-h-56 flex-col items-center justify-center gap-3 rounded-2xl border border-red-100 bg-red-50 p-8 text-center">
+                        <AlertCircle className="text-red-500" size={28} />
+                        <div>
+                            <p className="font-semibold text-red-800">Unable to load reports</p>
+                            <p className="mt-1 text-sm text-red-700">{error}</p>
+                        </div>
+                    </div>
+                )}
+
+                {!isLoading && !error && reports.length === 0 && (
+                    <div className="flex min-h-56 flex-col items-center justify-center gap-3 rounded-2xl border border-slate-100 bg-white p-8 text-center">
+                        <SearchX className="text-brand-500" size={30} />
+                        <div>
+                            <p className="font-semibold text-slate-800">No reports found</p>
+                            <p className="mt-1 text-sm text-slate-500">
+                                {query ? 'Try a different search term.' : 'Upload the first disaster report to get started.'}
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {!isLoading && !error && reports.map(report => (
                     <Link key={report._id} to={`/report/${report._id}`} className="block">
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md hover:border-brand-100 transition-all cursor-pointer group space-y-4">
                         <div className="flex justify-between items-start">
