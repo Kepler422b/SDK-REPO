@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, AreaChart, Area } from 'recharts';
-import { Activity, TrendingUp, BarChart2, PieChart, ShieldCheck, Globe, Zap, Layers } from 'lucide-react';
+import { Activity, TrendingUp, BarChart2, PieChart, ShieldCheck, Globe, Zap, Layers, FilePlus } from 'lucide-react';
 
 const Dashboard = () => {
     const [data, setData] = useState(null);
@@ -25,6 +26,26 @@ const Dashboard = () => {
                 <div className="w-16 h-16 border-4 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
                 <span className="text-slate-400 font-black uppercase tracking-widest text-xs">Initializing Mission Intelligence...</span>
              </div>
+        </div>
+    );
+
+    if (!data || data.totalReports === 0) return (
+        <div className="flex min-h-[70vh] items-center justify-center">
+            <div className="max-w-lg rounded-3xl border border-slate-100 bg-white p-10 text-center shadow-sm">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
+                    <FilePlus size={30} />
+                </div>
+                <h1 className="mt-6 text-2xl font-bold text-slate-800">No dashboard data yet</h1>
+                <p className="mt-3 text-sm leading-6 text-slate-500">
+                    Upload your first disaster report to start tracking incidents and viewing analytics.
+                </p>
+                <Link
+                    to="/upload"
+                    className="mt-7 inline-flex items-center gap-2 rounded-xl bg-brand-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700"
+                >
+                    <FilePlus size={18} /> Upload your first report
+                </Link>
+            </div>
         </div>
     );
 
@@ -186,4 +207,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-
