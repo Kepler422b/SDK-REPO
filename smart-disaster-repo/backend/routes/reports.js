@@ -36,7 +36,7 @@ async function generateAISummaryAndTags(text) {
 }
 
 // Upload Report with OCR
-router.post('/upload', upload.single('file'), async (req, res) => {
+router.post('/upload', requireAuth, upload.single('file'), async (req, res) => {
     try {
         const { title, disasterType, state, district, date, ngoName, ngoType, volunteerCount } = req.body;
         const file = req.file;

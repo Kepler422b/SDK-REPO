@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { UploadCloud, FileText, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const UploadReport = () => {
+    const { currentUser } = useAuth();
     const [file, setFile] = useState(null);
     const [status, setStatus] = useState('idle'); // idle, uploading, processing, done
     const [formData, setFormData] = useState({
@@ -28,18 +30,26 @@ const UploadReport = () => {
             return;
         }
 
+        if (!currentUser) {
+            setErrors({ form: 'Please log in before uploading a report.' });
+            return;
+        }
+
         setErrors({});
-        
-        setStatus('uploading');
         
         const data = new FormData();
         data.append('file', file);
         Object.entries(formData).forEach(([key, value]) => data.append(key, value));
         
         try {
+            const token = await currentUser.getIdToken();
+            setStatus('uploading');
             setStatus('processing'); // The backend does the OCR/AI processing synchronously for now
             const response = await axios.post('/api/reports/upload', data, {
-                headers: { 'Content-Type': 'multipart/form-data' }
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    Authorization: `Bearer ${token}`,
+                }
             });
             setResultData(response.data);
             setStatus('done');
