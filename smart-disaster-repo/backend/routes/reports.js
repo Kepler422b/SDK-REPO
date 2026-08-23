@@ -43,6 +43,24 @@ router.post('/upload', upload.single('file'), async (req, res) => {
 
         if (!file) return res.status(400).json({ error: "No file uploaded" });
 
+        const requiredFields = { title, disasterType, state, district, date };
+        const missingFields = Object.entries(requiredFields)
+            .filter(([, value]) => !value || !String(value).trim())
+            .map(([field]) => field);
+
+        if (missingFields.length > 0) {
+            if (file.path && fs.existsSync(file.path)) fs.unlinkSync(file.path);
+            return res.status(400).json({
+                error: `Missing required fields: ${missingFields.join(', ')}`,
+                fields: missingFields,
+            });
+        }
+
+        if (Number.isNaN(new Date(date).getTime())) {
+            if (file.path && fs.existsSync(file.path)) fs.unlinkSync(file.path);
+            return res.status(400).json({ error: 'Report date must be valid.', fields: ['date'] });
+        }
+
         // Upload to Cloudinary
         const fileUrl = await uploadToCloudinary(file.path);
 

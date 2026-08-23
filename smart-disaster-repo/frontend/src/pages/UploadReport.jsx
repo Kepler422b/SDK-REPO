@@ -1,24 +1,40 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { UploadCloud, FileText, CheckCircle2 } from 'lucide-react';
+import { UploadCloud, FileText, CheckCircle2, AlertCircle } from 'lucide-react';
 
 const UploadReport = () => {
     const [file, setFile] = useState(null);
     const [status, setStatus] = useState('idle'); // idle, uploading, processing, done
-    const [formData, setFormData] = useState({ state: 'Maharashtra', disasterType: 'Flood'});
+    const [formData, setFormData] = useState({
+        title: '',
+        disasterType: '',
+        state: '',
+        district: '',
+        date: new Date().toISOString().slice(0, 10),
+    });
     const [resultData, setResultData] = useState(null);
+    const [errors, setErrors] = useState({});
 
     const handleUpload = async (e) => {
         e.preventDefault();
-        if(!file) return;
+        const nextErrors = {};
+        if (!file) nextErrors.file = 'Please select a PDF or image report.';
+        ['title', 'disasterType', 'state', 'district', 'date'].forEach((field) => {
+            if (!formData[field].trim()) nextErrors[field] = 'This field is required.';
+        });
+
+        if (Object.keys(nextErrors).length > 0) {
+            setErrors(nextErrors);
+            return;
+        }
+
+        setErrors({});
         
         setStatus('uploading');
         
         const data = new FormData();
         data.append('file', file);
-        data.append('state', formData.state);
-        data.append('disasterType', formData.disasterType);
-        data.append('title', file.name.split('.')[0]); // basic title fallback
+        Object.entries(formData).forEach(([key, value]) => data.append(key, value));
         
         try {
             setStatus('processing'); // The backend does the OCR/AI processing synchronously for now
@@ -29,8 +45,8 @@ const UploadReport = () => {
             setStatus('done');
         } catch (error) {
             console.error(error);
+            setErrors({ form: error.response?.data?.error || 'Upload failed. Please try again.' });
             setStatus('idle');
-            alert('Upload failed!');
         }
     }
 
@@ -58,35 +74,82 @@ const UploadReport = () => {
                                 </div>
                             </div>
                         </div>
+                        {errors.file && <p className="-mt-4 text-sm font-medium text-red-600">{errors.file}</p>}
+
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Report Title</label>
+                            <input
+                                type="text"
+                                value={formData.title}
+                                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                placeholder="E.g. Flood response in Mumbai"
+                                className={`w-full rounded-lg border bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500 ${errors.title ? 'border-red-400' : 'border-slate-200'}`}
+                            />
+                            {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
+                        </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Disaster Type (Optional)</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Disaster Type</label>
                                 <select 
-                                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                                    className={`w-full bg-slate-50 border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500 ${errors.disasterType ? 'border-red-400' : 'border-slate-200'}`}
                                     value={formData.disasterType}
                                     onChange={(e) => setFormData({...formData, disasterType: e.target.value})}
                                 >
-                                    <option>Auto-detect</option>
+                                    <option value="">Select disaster type</option>
                                     <option value="Flood">Flood</option>
                                     <option value="Earthquake">Earthquake</option>
+                                    <option value="Cyclone">Cyclone</option>
+                                    <option value="Heatwave">Heatwave</option>
+                                    <option value="Landslide">Landslide</option>
+                                    <option value="Other">Other</option>
                                 </select>
+                                {errors.disasterType && <p className="mt-1 text-sm text-red-600">{errors.disasterType}</p>}
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">State (Optional)</label>
-                                <select 
-                                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                                <label className="block text-sm font-medium text-slate-700 mb-1">State</label>
+                                <input
+                                    type="text"
+                                    placeholder="E.g. Maharashtra"
+                                    className={`w-full bg-slate-50 border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500 ${errors.state ? 'border-red-400' : 'border-slate-200'}`}
                                     value={formData.state}
                                     onChange={(e) => setFormData({...formData, state: e.target.value})}
-                                >
-                                    <option>Auto-detect</option>
-                                    <option value="Maharashtra">Maharashtra</option>
-                                    <option value="Assam">Assam</option>
-                                </select>
+                                />
+                                {errors.state && <p className="mt-1 text-sm text-red-600">{errors.state}</p>}
                             </div>
                         </div>
 
-                        <button disabled={!file} className="w-full bg-slate-900 text-white font-medium py-3 rounded-xl hover:bg-brand-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">District</label>
+                                <input
+                                    type="text"
+                                    placeholder="E.g. Mumbai Suburban"
+                                    className={`w-full bg-slate-50 border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500 ${errors.district ? 'border-red-400' : 'border-slate-200'}`}
+                                    value={formData.district}
+                                    onChange={(e) => setFormData({ ...formData, district: e.target.value })}
+                                />
+                                {errors.district && <p className="mt-1 text-sm text-red-600">{errors.district}</p>}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Report Date</label>
+                                <input
+                                    type="date"
+                                    className={`w-full bg-slate-50 border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500 ${errors.date ? 'border-red-400' : 'border-slate-200'}`}
+                                    value={formData.date}
+                                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                                />
+                                {errors.date && <p className="mt-1 text-sm text-red-600">{errors.date}</p>}
+                            </div>
+                        </div>
+
+                        {errors.form && (
+                            <div className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm font-medium text-red-700">
+                                <AlertCircle size={18} /> {errors.form}
+                            </div>
+                        )}
+
+                        <button className="w-full bg-slate-900 text-white font-medium py-3 rounded-xl hover:bg-brand-600 transition-colors">
                             Upload and Extract
                         </button>
                     </form>
