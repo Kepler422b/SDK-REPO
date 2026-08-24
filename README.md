@@ -1,4 +1,7 @@
 # SDK-REPO
+
+[![CI](https://github.com/Kepler422b/SDK-REPO/actions/workflows/ci.yml/badge.svg)](https://github.com/Kepler422b/SDK-REPO/actions/workflows/ci.yml)
+
 # Smart Disaster Knowledge Repository
 A full-stack platform for collecting, searching, and analyzing disaster response reports. NGOs and relief workers can upload field reports (PDFs or images), which are automatically processed with OCR and AI summarization, then stored in a searchable knowledge base with analytics dashboards.
 ## Features
@@ -86,6 +89,10 @@ cp .env.example .env
 npm run dev
 ```
 The frontend runs at `http://localhost:5173` and proxies `/api` requests to the backend.
+
+## Continuous Integration
+
+GitHub Actions runs on every push and pull request to `main`. It builds the frontend and checks the syntax of the backend entry point and report routes.
 ### 4. Seed sample data (optional)
 ```bash
 cd smart-disaster-repo/backend
